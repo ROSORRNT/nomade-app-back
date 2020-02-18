@@ -1,5 +1,7 @@
 const express = require('express')
 
+const HttpError = require('../models/http-error')
+
 const router = express.Router()
 
 const DUMMY_PLACES = [
@@ -22,8 +24,10 @@ router.get('/:pid', (req, res, next) => {
   const place = DUMMY_PLACES.find(p => p.id === placeId)
 
   if (!place) {
-    const error = new Error("Aucun lieu trouvé pour l'identifiant fourni.")
-    error.code = 404
+    const error = new HttpError(
+      "Aucun lieu trouvé pour l'identifiant fourni.",
+      404
+    )
     // throw cancel the function execution, next() does not (so, return)
     return next(error)
   }
@@ -36,10 +40,10 @@ router.get('/user/:uid', (req, res, next) => {
   const place = DUMMY_PLACES.find(p => p.creator === userId)
 
   if (!place) {
-    const error = new Error(
-      "Aucun lieu trouvé pour l'identifiant utilisateur fourni."
+    const error = new HttpError(
+      "Aucun lieu trouvé pour l'identifiant utilisateur fourni.",
+      404
     )
-    error.code = 404
     return next(error)
   }
   res.json({ place })
