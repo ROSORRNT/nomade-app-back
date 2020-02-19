@@ -2,7 +2,7 @@ const express = require('express')
 const bodyParser = require('body-parser')
 
 const placesRoutes = require('./routes/places-routes')
-const usersRoutes = require('./routes/users-routes')
+const HttpError = require('./models/http-error')
 
 const app = express()
 
@@ -12,6 +12,11 @@ so, in createPlace (places-controllers) we are now able to get the parse body
 app.use(bodyParser.json())
 
 app.use('/api/places', placesRoutes) // => app/places/...
+
+app.use((req, res, next) => {
+  const error = new HttpError("Cette route n'a pu être trouvée.", 404)
+  return next(error)
+})
 
 app.use((error, req, res, next) => {
   if (res.headerSent) {
