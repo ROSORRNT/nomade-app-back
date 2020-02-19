@@ -6,6 +6,11 @@ const usersRoutes = require('./routes/users-routes')
 
 const app = express()
 
+/* this will parse any incomming requests body, extract json data converted to regular JS, and then call next() automatically, so be reached the next middleware and then also add the json() data :
+so, in createPlace (places-controllers) we are now able to get the parse body
+ */
+app.use(bodyParser.json())
+
 app.use('/api/places', placesRoutes) // => app/places/...
 
 app.use((error, req, res, next) => {
