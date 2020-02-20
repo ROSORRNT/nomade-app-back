@@ -99,7 +99,10 @@ const createPlace = async (req, res, next) => {
   try {
     await createdPlace.save()
   } catch (err) {
-    const error = new HttpError('Creating place failed, please try again.', 500)
+    const error = new HttpError(
+      "L'opération de création du lieu à échouée, veuillez réessayer.",
+      500
+    )
     return next(error)
   }
 
@@ -144,12 +147,30 @@ const updatePlaceById = async (req, res, next) => {
   res.status(200).json({ place: place.toObject({ getters: true }) })
 }
 
-const deletePlaceById = (req, res, next) => {
+const deletePlaceById = async (req, res, next) => {
   const placeId = req.params.pid
-  if (!DUMMY_PLACES.find(p => p.id === placeId)) {
-    throw new HttpError("Aucun lieu trouvé pour l'identifiant fourni.", 404)
+
+  let place
+  try {
+    place = await Place.findById(placeId)
+  } catch (err) {
+    const error = new HttpError(
+      "L'opération de suppression du lieu à échouée, veuillez réessayer.",
+      500
+    )
+    return next(error)
   }
-  DUMMY_PLACES = DUMMY_PLACES.filter(p => p.id !== placeId)
+
+  try {
+    await place.remove()
+  } catch (err) {
+    const error = new HttpError(
+      "L'opération de suppression du lieu à échouée, veuillez réessayer.",
+      500
+    )
+    return next(error)
+  }
+
   res.json({ message: 'Lieu supprimé' })
 }
 
