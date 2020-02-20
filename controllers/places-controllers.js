@@ -47,11 +47,12 @@ const getPlacesByUserId = (req, res, next) => {
   }
   res.json({ places })
 }
-
+// TODO : create and updatePlace => throw only for sychrone code
+// Not assume that we get the coordinates from client (Geocoding)
 const createPlace = (req, res, next) => {
   const error = validationResult(req)
   if (!error.isEmpty()) {
-    console.log(error)
+    // console.log(error)
     // res.status(422)
     throw new HttpError(
       'Entrées de formulaire invalides, veuillez vérifiez vos données.',
@@ -75,6 +76,13 @@ const createPlace = (req, res, next) => {
 }
 
 const updatePlaceById = (req, res, next) => {
+  const error = validationResult(req)
+  if (!error.isEmpty()) {
+    throw new HttpError(
+      'Entrées de formulaire invalides, veuillez vérifiez vos données.',
+      422
+    )
+  }
   const { title, description } = req.body
   const placeId = req.params.pid
 
@@ -90,6 +98,9 @@ const updatePlaceById = (req, res, next) => {
 
 const deletePlaceById = (req, res, next) => {
   const placeId = req.params.pid
+  if (!DUMMY_PLACES.find(p => p.id === placeId)) {
+    throw new HttpError("Aucun lieu trouvé pour l'identifiant fourni.", 404)
+  }
   DUMMY_PLACES = DUMMY_PLACES.filter(p => p.id !== placeId)
   res.json({ message: 'Lieu supprimé' })
 }
