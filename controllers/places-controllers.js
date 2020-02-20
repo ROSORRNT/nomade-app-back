@@ -20,20 +20,29 @@ let DUMMY_PLACES = [
   },
 ]
 
-const getPlaceById = (req, res, next) => {
+const getPlaceById = async (req, res, next) => {
   const placeId = req.params.pid // { pid: 'p1' }
-  const place = DUMMY_PLACES.find(p => p.id === placeId)
+
+  let place
+  try {
+    place = await Place.findById(placeId)
+  } catch (err) {
+    const error = new HttpError(
+      "Quelque chose s'est mal passé, aucun lieu trouvé.",
+      500
+    )
+    return next(error)
+  }
 
   if (!place) {
     const error = new HttpError(
       "Aucun lieu trouvé pour l'identifiant fourni.",
       404
     )
-    // throw cancel the function execution, next() does not (so, return)
     return next(error)
   }
 
-  res.json({ place })
+  res.json({ place: place.toObject({ getters: true }) })
 }
 
 const getPlacesByUserId = (req, res, next) => {
@@ -67,14 +76,13 @@ const createPlace = async (req, res, next) => {
     return next(error)
   }
 
-  // const title = req.body.title;
   const createdPlace = new Place({
     title,
     description,
     address,
     location: coordinates,
     image:
-      'https://upload.wikimedia.org/wikipedia/commons/thumb/1/10/Empire_State_Building_%28aerial_view%29.jpg/400px-Empire_State_Building_%28aerial_view%29.jpg',
+      'https://comprendrelapeinture.com/wp-content/uploads/2016/10/louvre.jpg',
     creator,
   })
 
