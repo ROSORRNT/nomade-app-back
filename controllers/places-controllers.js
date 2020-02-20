@@ -2,6 +2,7 @@ const uuid = require('uuid/v4')
 const { validationResult } = require('express-validator')
 
 const HttpError = require('../models/http-error')
+const getCoordsForAddress = require('../util/location')
 
 let DUMMY_PLACES = [
   {
@@ -47,20 +48,23 @@ const getPlacesByUserId = (req, res, next) => {
   }
   res.json({ places })
 }
-// TODO : create and updatePlace => throw only for sychrone code
-// Not assume that we get the coordinates from client (Geocoding)
-const createPlace = (req, res, next) => {
-  const error = validationResult(req)
-  if (!error.isEmpty()) {
-    // console.log(error)
-    // res.status(422)
-    throw new HttpError(
-      'Entrées de formulaire invalides, veuillez vérifiez vos données.',
-      422
-    )
-  }
-  const { title, description, coordinates, address, creator } = req.body
 
+const createPlace = async (req, res, next) => {
+  const errors = validationResult(req)
+  if (!errors.isEmpty()) {
+    next(new HttpError('Invalid inputs passed, please check your data.', 422))
+  }
+
+  const { title, description, address, creator } = req.body
+
+  let coordinates
+  try {
+    coordinates = await getCoordsForAddress(address)
+  } catch (error) {
+    return next(error)
+  }
+
+  // const title = req.body.title;
   const createdPlace = {
     id: uuid(),
     title,
@@ -70,7 +74,7 @@ const createPlace = (req, res, next) => {
     creator,
   }
 
-  DUMMY_PLACES.push(createdPlace)
+  DUMMY_PLACES.push(createdPlace) //unshift(createdPlace)
 
   res.status(201).json({ place: createdPlace })
 }
